@@ -43,7 +43,8 @@ void main() {
   });
 
   group('find config from user directory', () {
-    final testConfig = File('${env['userprofile']}${seperator}test.config');
+    final testConfig = File(
+        '${env['userprofile'] ?? env['home'] ?? env['Home'] ?? env['HOME']}${seperator}test.config');
 
     setUp(testConfig.createSync);
     tearDown(testConfig.deleteSync);

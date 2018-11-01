@@ -25,7 +25,7 @@ File findConfig(
   bool includeUserDir = false,
 }) {
   final userDir = Directory(
-    env['userprofile'] ?? env['home'],
+    env['userprofile'] ?? env['home'] ?? env['Home'] ?? env['HOME'],
   ).path;
 
   final searchPaths = <String>[
