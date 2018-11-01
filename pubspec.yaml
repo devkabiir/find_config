@@ -1,0 +1,16 @@
+name: find_config
+description: Find configuration files recursively in parent directories
+version: 0.0.1
+homepage: https://www.github.com/devkabiir/find_config
+author: Dinesh Ahuja <dev@kabiir.me>
+documentation:
+
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+
+dependencies:
+
+dev_dependencies:
+  test: ^1.0.0
+  pre_commit:
+    git: https://www.github.com/devkabiir/pre_commit
