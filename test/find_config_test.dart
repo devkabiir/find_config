@@ -13,16 +13,19 @@ void main() {
   group('findConfigSync', () {
     MemoryFileSystem fs;
 
-    setUp(() => fs = MemoryFileSystem());
+    setUp(() => fs = MemoryFileSystem(
+        style: Platform.isWindows
+            ? FileSystemStyle.windows
+            : FileSystemStyle.posix));
 
     group('(cwd)', () {
       test('returns File reference when found', () {
-        final pubspec = fs.file('pubspec.yaml')..createSync();
+        final pubspec = fs.file('pubspec.yaml')..createSync(recursive: true);
         final config =
             findConfigSync(pubspec.basename, fs: fs, includeCwd: true);
 
         expect(config, const TypeMatcher<File>());
-        expect(config.path, pubspec.path);
+        expect(config.absolute.path, pubspec.absolute.path);
       });
 
       test('throws exception when not found', () {
@@ -34,14 +37,14 @@ void main() {
     group('(searchPath)', () {
       test('returns File reference when found', () {
         final pubspec = fs.file(p.join('lib', 'src', 'pubspec.yaml'))
-          ..createSync();
+          ..createSync(recursive: true);
 
         final config = findConfigSync(pubspec.basename,
             includePaths: [p.join('lib', 'src')], includeCwd: true, fs: fs);
 
         expect(config, const TypeMatcher<File>());
 
-        expect(config.path, pubspec.path);
+        expect(config.absolute.path, pubspec.absolute.path);
       });
 
       test('throws exception when not found', () {
@@ -55,13 +58,12 @@ void main() {
     group('(user directory)', () {
       test('returns File reference when found', () {
         final testConfig = fs.file(p.join(
-            Platform.environment.entries
-                .firstWhere((variable) => variable.key
-                    .toLowerCase()
-                    .contains(RegExp(r'(userprofile)|(home)')))
-                .value,
+            Platform.environment.entries.firstWhere((variable) {
+              final name = variable.key.toLowerCase();
+              return name == 'userprofile' || name == 'home';
+            }).value,
             'test.config'))
-          ..createSync();
+          ..createSync(recursive: true);
 
         final config =
             findConfigSync('test.config', includeUserDir: true, fs: fs);

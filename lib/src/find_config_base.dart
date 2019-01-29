@@ -25,16 +25,6 @@ File findConfigSync(
   bool includeUserDir = false,
   FileSystem fs = const LocalFileSystem(),
 }) {
-  final userDir = fs
-      .directory(
-        p.normalize(Platform.environment.entries
-            .firstWhere((variable) => variable.key
-                .toLowerCase()
-                .contains(RegExp(r'(userprofile)|(home)')))
-            .value),
-      )
-      .path;
-
   final searchPaths = <String>[
     includeCwd ? fs.currentDirectory.path : '',
   ]
@@ -43,21 +33,24 @@ File findConfigSync(
 
   /// loop through all the searchPaths
   for (var searchPath in searchPaths.map(p.normalize)) {
-    var test = fs.file(p.join(searchPath, config));
+    File test;
 
-    if (test.existsSync()) {
+    test = _findInDirectorySync(config, fs.directory(searchPath));
+
+    if (test != null) {
       return test;
     }
 
-    final paths = searchPath.split(p.separator);
+    final paths = p.split(searchPath)..removeLast();
     var isFound = false;
 
     /// loop through all the parents for each path
     final length = paths.length;
     for (var j = 0; j < length; j++) {
-      test = fs.file(p.join(p.joinAll(paths), config));
+      test =
+          test = _findInDirectorySync(config, fs.directory(p.joinAll(paths)));
 
-      if (test.existsSync()) {
+      if (test != null) {
         isFound = true;
         break;
       }
@@ -73,11 +66,32 @@ File findConfigSync(
 
   /// Search in the user directory
   if (includeUserDir) {
-    final test = fs.file(p.join(userDir, config));
-    if (test.existsSync()) {
+    final userDir = fs.directory(
+      p.normalize(Platform.environment.entries.firstWhere((variable) {
+        final name = variable.key.toLowerCase();
+        return name == 'userprofile' || name == 'home';
+      },
+          orElse: () => throw Exception(
+              'Could not locate user directory to search for $config')).value),
+    );
+
+    final test = _findInDirectorySync(config, userDir);
+
+    if (test != null) {
       return test;
     }
   }
 
   throw Exception('Config $config not found');
+}
+
+File _findInDirectorySync(String config, Directory dir) {
+  File test;
+
+  test = dir.childFile(config);
+  if (test.existsSync()) {
+    return test;
+  }
+
+  return null;
 }
