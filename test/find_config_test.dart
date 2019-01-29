@@ -1,62 +1,83 @@
 // find_config, Copyright (C) 2018 Dinesh Ahuja <dev@kabiir.me>.
 // See the included LICENSE file for more info.
 
-import 'dart:io';
+import 'dart:io' show Platform;
 
+import 'package:file/file.dart';
+import 'package:file/memory.dart';
 import 'package:find_config/find_config.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
-  group('find config from cwd', () {
-    test('returns File reference when found', () {
-      expect(findConfig('pubspec.yaml'), const TypeMatcher<File>());
+  group('findConfigSync', () {
+    MemoryFileSystem fs;
+
+    setUp(() => fs = MemoryFileSystem());
+
+    group('(cwd)', () {
+      test('returns File reference when found', () {
+        final pubspec = fs.file('pubspec.yaml')..createSync();
+        final config =
+            findConfigSync(pubspec.basename, fs: fs, includeCwd: true);
+
+        expect(config, const TypeMatcher<File>());
+        expect(config.path, pubspec.path);
+      });
+
+      test('throws exception when not found', () {
+        expect(() => findConfigSync('pubspec', fs: fs, includeCwd: true),
+            throwsException);
+      });
     });
 
-    test('throws exception when not found', () {
-      expect(() => findConfig('pubspec'), throwsException);
+    group('(searchPath)', () {
+      test('returns File reference when found', () {
+        final pubspec = fs.file(p.join('lib', 'src', 'pubspec.yaml'))
+          ..createSync();
+
+        final config = findConfigSync(pubspec.basename,
+            includePaths: [p.join('lib', 'src')], includeCwd: true, fs: fs);
+
+        expect(config, const TypeMatcher<File>());
+
+        expect(config.path, pubspec.path);
+      });
+
+      test('throws exception when not found', () {
+        expect(
+            () => findConfigSync('pubspec',
+                includePaths: [p.join('lib', 'src')], fs: fs, includeCwd: true),
+            throwsException);
+      });
+    });
+
+    group('(user directory)', () {
+      test('returns File reference when found', () {
+        final testConfig = fs.file(p.join(
+            Platform.environment.entries
+                .firstWhere((variable) => variable.key
+                    .toLowerCase()
+                    .contains(RegExp(r'(userprofile)|(home)')))
+                .value,
+            'test.config'))
+          ..createSync();
+
+        final config =
+            findConfigSync('test.config', includeUserDir: true, fs: fs);
+        expect(config, const TypeMatcher<File>());
+
+        expect(config.path, testConfig.path);
+      });
+
+      test('throws exception when not found', () {
+        expect(
+            () => findConfigSync('test.config.yaml',
+                includeUserDir: true, fs: fs),
+            throwsException);
+      });
     });
   });
 
-  group('find config from searchPath', () {
-    final searchPath =
-        '${Directory.current.path}${seperator}lib${seperator}src';
-
-    test('returns File reference when found', () {
-      expect(
-          findConfig(
-            'pubspec.yaml',
-            includePaths: [searchPath],
-            includeCwd: false,
-          ),
-          const TypeMatcher<File>());
-    });
-
-    test('throws exception when not found', () {
-      expect(
-          () => findConfig(
-                'pubspec',
-                includePaths: [searchPath],
-                includeCwd: false,
-              ),
-          throwsException);
-    });
-  });
-
-  group('find config from user directory', () {
-    final testConfig = File(
-        '${env['userprofile'] ?? env['home'] ?? env['Home'] ?? env['HOME']}${seperator}test.config');
-
-    setUp(testConfig.createSync);
-    tearDown(testConfig.deleteSync);
-
-    test('returns File reference when found', () {
-      expect(findConfig('test.config', includeUserDir: true),
-          const TypeMatcher<File>());
-    });
-
-    test('throws exception when not found', () {
-      expect(() => findConfig('test.config.yaml', includeUserDir: true),
-          throwsException);
-    });
-  });
+  group('findConfig', () {});
 }
