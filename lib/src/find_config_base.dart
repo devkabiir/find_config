@@ -19,7 +19,7 @@ import 'package:path/path.dart' as p;
 ///
 /// throws [Exception] when nothing found
 File findConfigSync(
-  String config, {
+  Pattern config, {
   bool includeCwd = true,
   List<String> includePaths = const <String>[],
   bool includeUserDir = false,
@@ -85,12 +85,24 @@ File findConfigSync(
   throw Exception('Config $config not found');
 }
 
-File _findInDirectorySync(String config, Directory dir) {
+File _findInDirectorySync(Pattern config, Directory dir) {
   File test;
 
-  test = dir.childFile(config);
-  if (test.existsSync()) {
-    return test;
+  if (config is String) {
+    test = dir.childFile(config);
+    if (test.existsSync()) {
+      return test;
+    }
+  } else {
+    final list = dir.listSync(followLinks: true).whereType<File>();
+
+    if (list.isNotEmpty) {
+      test = list
+          .firstWhere((file) => config.matchAsPrefix(file.basename) != null);
+      if (test.existsSync()) {
+        return test;
+      }
+    }
   }
 
   return null;

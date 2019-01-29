@@ -28,6 +28,15 @@ void main() {
         expect(config.absolute.path, pubspec.absolute.path);
       });
 
+      test('returns File reference when found (pattern)', () {
+        final pubspec = fs.file('pubspec.yaml')..createSync(recursive: true);
+        final config =
+            findConfigSync(RegExp(r'.*spec'), fs: fs, includeCwd: true);
+
+        expect(config, const TypeMatcher<File>());
+        expect(config.absolute.path, pubspec.absolute.path);
+      });
+
       test('throws exception when not found', () {
         expect(() => findConfigSync('pubspec', fs: fs, includeCwd: true),
             throwsException);
@@ -40,6 +49,18 @@ void main() {
           ..createSync(recursive: true);
 
         final config = findConfigSync(pubspec.basename,
+            includePaths: [p.join('lib', 'src')], includeCwd: true, fs: fs);
+
+        expect(config, const TypeMatcher<File>());
+
+        expect(config.absolute.path, pubspec.absolute.path);
+      });
+
+      test('returns File reference when found (pattern)', () {
+        final pubspec = fs.file(p.join('lib', 'src', 'pubspec.yaml'))
+          ..createSync(recursive: true);
+
+        final config = findConfigSync(RegExp(r'.*spec'),
             includePaths: [p.join('lib', 'src')], includeCwd: true, fs: fs);
 
         expect(config, const TypeMatcher<File>());
@@ -67,6 +88,22 @@ void main() {
 
         final config =
             findConfigSync('test.config', includeUserDir: true, fs: fs);
+        expect(config, const TypeMatcher<File>());
+
+        expect(config.path, testConfig.path);
+      });
+
+      test('returns File reference when found (pattern)', () {
+        final testConfig = fs.file(p.join(
+            Platform.environment.entries.firstWhere((variable) {
+              final name = variable.key.toLowerCase();
+              return name == 'userprofile' || name == 'home';
+            }).value,
+            'test.config'))
+          ..createSync(recursive: true);
+
+        final config =
+            findConfigSync(RegExp(r'.*config'), includeUserDir: true, fs: fs);
         expect(config, const TypeMatcher<File>());
 
         expect(config.path, testConfig.path);
