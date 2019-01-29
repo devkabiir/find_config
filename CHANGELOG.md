@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0
+
+- allow pattern matching in `findConfigSync`
+- fix tests on linux
+
 ## 1.0.0
 
 - rename `findConfig` to `findConfigSync`
