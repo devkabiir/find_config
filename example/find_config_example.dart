@@ -4,7 +4,7 @@
 import 'package:find_config/find_config.dart';
 
 void main() {
-  final pubspec = findConfig('pubspec.yaml');
+  final pubspec = findConfigSync('pubspec.yaml');
 
   print(pubspec.readAsStringSync());
 }

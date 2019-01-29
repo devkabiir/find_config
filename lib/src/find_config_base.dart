@@ -18,7 +18,7 @@ String get seperator => Platform.pathSeparator;
 /// 3. [includeUserDir] finally search in User directory
 ///
 /// throws [Exception] when nothing found
-File findConfig(
+File findConfigSync(
   String config, {
   bool includeCwd = true,
   List<String> includePaths = const <String>[],
