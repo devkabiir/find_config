@@ -19,6 +19,9 @@ import 'package:path/path.dart' as p;
 ///
 /// Optionally specify [fs] to use
 ///
+/// Optionally specify [orElse] to use when nothing found, defaults to
+/// throwing an [Exception]
+///
 /// throws [Exception] when nothing found
 File findConfigSync(
   Pattern config, {
@@ -26,6 +29,7 @@ File findConfigSync(
   List<String> includePaths = const <String>[],
   bool includeUserDir = false,
   FileSystem fs = const LocalFileSystem(),
+  File orElse(Pattern config),
 }) {
   final searchPaths = <String>[
     includeCwd ? fs.currentDirectory.path : '',
@@ -84,7 +88,7 @@ File findConfigSync(
     }
   }
 
-  throw Exception('Config $config not found');
+  return orElse?.call(config) ?? (throw Exception('Config $config not found'));
 }
 
 File _findInDirectorySync(Pattern config, Directory dir) {

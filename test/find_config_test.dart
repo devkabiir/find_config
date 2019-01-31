@@ -116,6 +116,28 @@ void main() {
             throwsException);
       });
     });
+
+    group('(orElse)', () {
+      test('returns File reference when found', () {
+        final pubspec = fs.file(p.join('does', 'not', 'match', 'pattern.yaml'))
+          ..createSync(recursive: true);
+        final config = findConfigSync(RegExp(r'.*spec'),
+            fs: fs, includeCwd: true, orElse: (_) => pubspec);
+
+        expect(config, const TypeMatcher<File>());
+        expect(config.absolute.path, pubspec.absolute.path);
+      });
+
+      test('throws exception when not found', () {
+        expect(
+            () => findConfigSync('pubspec',
+                fs: fs,
+                includeCwd: true,
+                orElse: (_) =>
+                    throw const FileSystemException('Custom Message')),
+            throwsA(const FileSystemException('Custom Message')));
+      });
+    });
   });
 
   group('findConfig', () {});
