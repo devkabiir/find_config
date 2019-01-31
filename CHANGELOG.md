@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- allow specifying custom orElse function
+- explain how file matching works
+
 ## 1.1.0
 
 - allow pattern matching in `findConfigSync`
