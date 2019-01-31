@@ -15,6 +15,8 @@ import 'package:path/path.dart' as p;
 ///    - duplicate paths are *NOT* ignored
 /// 3. [includeUserDir] finally search in User directory
 ///
+/// [config] is matched against the basename of an entity
+///
 /// Optionally specify [fs] to use
 ///
 /// throws [Exception] when nothing found
