@@ -94,6 +94,10 @@ File _findInDirectorySync(Pattern config, Directory dir) {
       return test;
     }
   } else {
+    if (!dir.existsSync()) {
+      return null;
+    }
+
     final list = dir.listSync(followLinks: true).whereType<File>();
 
     if (list.isNotEmpty) {
